@@ -72,3 +72,8 @@ The API follows standard HTTP status codes for indicating the success or failure
   "message": "[error message]"
 }
 ```
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+```
