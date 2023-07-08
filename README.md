@@ -1,4 +1,3 @@
-```markdown
 # PHP Customer Api Project 
 
 This is a PHP project for managing customers.
@@ -74,5 +73,3 @@ The API follows standard HTTP status codes for indicating the success or failure
 ```
 
 
-
-```
