@@ -13,27 +13,55 @@ function error422($message)
     // exit();
 }
 
+// Create table if doesnt exist
+function createCustomersTableIfNotExists() {
+    global $conn;
+    global $dbname;
+
+    // $query = "CREATE TABLE IF NOT EXISTS api_tuts.customers (
+    $query = "CREATE TABLE IF NOT EXISTS $dbname.customers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        phone VARCHAR(20) NOT NULL
+    )";
+  
+    $result = mysqli_query($conn, $query);
+  
+    if (!$result) {
+        return "Error creating customers table: " . mysqli_error($conn);
+    }
+}
+
 // Add customer
 function storeCustomer($customerInput)
 {
     global $conn;
 
+    echo createCustomersTableIfNotExists();
+
     $name = mysqli_real_escape_string($conn, $customerInput['name']);
     $email = mysqli_real_escape_string($conn, $customerInput['email']);
     $phone = mysqli_real_escape_string($conn, $customerInput['phone']);
 
-    if (empty(trim($name))) {
-        return error422('Enter your name');
-    } elseif (empty(trim($email))) {
-        return error422('Enter your email');
-    } elseif (empty(trim($phone))) {
-        return error422('Enter your phone number');
-    } else {
-        $query = "INSERT INTO customers (name,email,phone) VALUES ('$name', '$email', '$phone')";
-        $result =  mysqli_query($conn, $query);
+    // Check if phone or email already exists in the table
+    $query = "SELECT * FROM customers WHERE email='$email' OR phone='$phone'";
+    $result = mysqli_query($conn, $query);
 
-        if ($result) {
-            // $response = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    if (mysqli_num_rows($result) > 0) {
+        $row = mysqli_fetch_assoc($result);
+
+        if ($row['email'] === $email) {
+            return error422('Email already exists');
+        } elseif ($row['phone'] === $phone) {
+            return error422('Phone already exists');
+        }
+    } else {
+        // Proceed to add the record to the table
+        $insertQuery = "INSERT INTO customers (name, email, phone) VALUES ('$name', '$email', '$phone')";
+        $insertResult = mysqli_query($conn, $insertQuery);
+
+        if ($insertResult) {
             $data = [
                 'status' => 201,
                 'message' => 'Customer Created Successfully',
@@ -44,13 +72,14 @@ function storeCustomer($customerInput)
         } else {
             $data = [
                 'status' => 500,
-                'message' => 'Internal  Server Error',
+                'message' => 'Internal Server Error',
             ];
-            header('HTTP/1.0 500 Internal  Server Error');
+            header('HTTP/1.0 500 Internal Server Error');
             return json_encode($data);
         }
     }
 }
+
 
 
 // Update customer
